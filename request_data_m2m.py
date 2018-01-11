@@ -11,6 +11,7 @@ username: OOI API username
 token: OOI API password
 """
 
+import pandas as pd
 import datetime as dt
 from tools import get_data_request_urls, send_data_requests_nc, data_request_tools
 
@@ -37,7 +38,7 @@ if len(subsite) == 0:
     subsite = ''
     node_list = qcdb['reference_designator'].str.split('-').str[1].unique().tolist()
     node_list.sort()
-    refdes_filtered_bysubsite = refdes_list
+    refdes_filtered_bysubsite = pd.DataFrame(refdes_list)
 else:
     for s in subsite:
         if s not in subsite_list:
