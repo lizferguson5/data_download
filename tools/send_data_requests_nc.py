@@ -16,17 +16,20 @@ import datetime as dt
 import os
 import requests
 import pandas as pd
+import csv
+import time
 
 
 def define_status_outputUrl(r):
     response = r.json()
     if r.status_code == 200:
-        print 'Data request successful'
+        print 'Data request sent'
 
         try:
             status = response['status']
         except KeyError:
             status = 'Data available for request'
+        print status
 
         try:
             outputUrl = response['outputURL']
@@ -36,38 +39,66 @@ def define_status_outputUrl(r):
         print 'Data request failed'
         outputUrl = 'no_output_url'
 
+        print 'Error: {} {}'.format(r.status_code,response['message'])
+
         try:
             status = response['message']['status']
+            print status
         except TypeError:
-            status = 'No status provided'
+            status = 'Data request failed: no uFrame status provided'
 
     return status, outputUrl
 
 
 def main(sDir, username, token, now):
-    print '\nNOTICE: use this data request tool with caution. DO NOT send too many data requests at once!'
-
     fname = 'data_request_urls_%s.csv' %now
     url_file = pd.read_csv(os.path.join(sDir, fname), header=None)
+    url_list = url_file[0].tolist()
     cont = raw_input('\nThere are {} requests to send, are you sure you want to continue? y/<n>: '.format(len(url_file))) or 'n'
 
     if 'y' in cont:
-        print '\nSending data requests'
-        summary = {}
-        for i,j in url_file.iterrows():
-            summary[i] = {}
-            summary[i]['request_url'] = j[0]
+        stime = time.time()
+        summary_file = os.path.join(sDir, 'data_request_summary_{}.csv'.format(now))
+        with open(summary_file,'a') as summary:
+            writer = csv.writer(summary)
+            writer.writerow(['status','request_url','outputUrl'])
+
+        for i in range(len(url_list)):
+            req = i+1
+            url = url_list[i]
+            print '\nRequest url {} of {}: {}'.format(req,len(url_list),url)
             session = requests.session()
-            r = session.get(j[0], auth=(username, token))  #send request
+            r = session.get(url, auth=(username, token))
+
+            while r.status_code == 400:
+                print 'Data request failed'
+                print 'Status from uFrame: %s' %r.json()['message']['status']
+                print 'Trying request again in 1 minute'
+                time.sleep(60)
+                print 'Re-sending request: %s' %url
+                r = session.get(url, auth=(username, token))
 
             status, outputUrl = define_status_outputUrl(r)
 
-            summary[i]['status'] = status
-            summary[i]['outputUrl'] = outputUrl
+            wformat = '%s,%s,%s\n'
+            newline = (status,url,outputUrl)
+            with open(summary_file,'a') as summary:
+                summary.write(wformat % newline)
 
-        summary_df = pd.DataFrame.from_dict(summary,orient='index')
-        filename = 'data_request_summary_%s.csv' %now
-        summary_df.to_csv(os.path.join(sDir, filename), index=False)
+            u = len(url_list) - (i+1)
+            if u == 0:
+                pd.DataFrame(['Attempted to send all requests']).to_csv(os.path.join(sDir,'urls_not_sent_{}.csv'.format(now)), index=False, header=False)
+            else:
+                urls_left = url_list[-u:]
+                pd.DataFrame(urls_left).to_csv(os.path.join(sDir,'urls_not_sent_{}.csv'.format(now)), index=False, header=False)
+
+        etime = time.time() - stime
+        if etime < 60:
+            print '\nTime elapsed sending data requests: %.2f seconds' % etime
+        else:
+            mins = etime/60
+            print '\nTime elapsed sending data requests: %.2f minutes' % mins
+
     else:
         print '\nCancelling data requests.'
 
