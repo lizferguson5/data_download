@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 Created on Jan 9 2018
-@author: lgarzio@marine.rutgers.edu
+@author: Lori Garzio
 @brief: This script sends data requests for all urls contained in data_request_urls.csv (output from
 get_data_request_urls.py) and provides a summary output that contains the links to the THREDDS data server.
 

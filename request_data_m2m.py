@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 Created on Jan 11 2018
-@author: lgarzio@marine.rutgers.edu
+@author: Lori Garzio
 @brief: This script imports tools that compare the QC Database to the OOI GUI data catalog, builds netCDF data request
 urls, and sends those requests (if prompted).
 

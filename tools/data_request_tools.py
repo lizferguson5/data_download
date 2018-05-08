@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 Created on Jan 11 2018
-@author: lgarzio@marine.rutgers.edu
+@author: Lori Garzio
 """
 
 import itertools

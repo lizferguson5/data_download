@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 Created on Jan 9 2018
-@author: lgarzio@marine.rutgers.edu
+@author: Lori Garzio
 @brief: This script is used to compare the reference designators, methods and streams in the QC database to those
 available in the GUI data catalog ('https://ooinet.oceanobservatories.org/api/uframe/stream'), and build data
 request urls (for netCDF files) for the science streams of the instruments input by the user
